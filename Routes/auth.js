@@ -3,53 +3,48 @@ const router = express.Router();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const authMiddleware = require("../Middleware/auth");
+const { PrismaClient } = require("@prisma/client");
+const prisma = new PrismaClient();
+
 
 const SECRET_KEY = process.env.SECRET_KEY;
 
-// Dummy users (sementara, sebelum pakai DB)
-const users = [
-  {
-    id: 1,
-    username: "qa",
-    password: bcrypt.hashSync("qa123456", 10),
-    role: "qa",
-  },
-  {
-    id: 2,
-    username: "dev",
-    password: bcrypt.hashSync("dev123456", 10),
-    role: "developer",
-  },
-];
-
 // LOGIN
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
-  // cari user berdasarkan username
-  const user = users.find((u) => u.username === username);
-  if (!user) {
-    return res.status(401).json({ message: "User tidak ditemukan" });
+  try {
+    const user = await prisma.user.findUnique({
+      where: { username },
+    });
+
+    if (!user) {
+      return res.status(401).json({ message: "User tidak ditemukan" });
+    }
+
+    const isMatch = bcrypt.compareSync(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Password salah" });
+    }
+
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      SECRET_KEY,
+      { expiresIn: "1d" }
+    );
+
+    res.cookie("token", token, {
+      httpOnly: true,
+    }).json({
+      message: "Login berhasil",
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
   }
-
-  const isMatch = bcrypt.compareSync(password, user.password);
-  if (!isMatch) {
-    return res.status(401).json({ message: "Password salah" });
-  }
-
-  // simpan id + role ke dalam token
-  const token = jwt.sign(
-    { id: user.id, role: user.role },
-    SECRET_KEY,
-    { expiresIn: "1d" }
-  );
-
-  res.cookie("token", token, {
-    httpOnly: true,
-  }).json({
-    message: "Login berhasil",
-  });
 });
+
 
 // LOGOUT
 router.post("/logout", (req, res) => {
@@ -57,16 +52,24 @@ router.post("/logout", (req, res) => {
 });
 
 // CEK LOGIN
-router.get("/me", authMiddleware, (req, res) => {
-  const user = users.find(u => u.id === req.user.id);
+router.get("/me", authMiddleware, async (req, res) => {
+  const user = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: {
+      id: true,
+      username: true,
+      role: true,
+    },
+  });
 
   res.json({
     loggedIn: true,
-    userId: req.user.id,
+    userId: user.id,
     username: user.username,
-    role: req.user.role,
+    role: user.role,
   });
 });
+
 
 
 module.exports = router;
