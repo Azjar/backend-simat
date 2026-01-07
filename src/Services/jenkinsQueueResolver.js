@@ -21,7 +21,7 @@ async function resolveQueue(queueUrl, retry = 20, delay = 1000) {
       };
     }
 
-    // ⏳ tunggu 1 detik
+    // tunggu 1 detik
     await new Promise((r) => setTimeout(r, delay));
   }
 

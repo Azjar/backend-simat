@@ -12,6 +12,7 @@ const allureTestRoutes = require("./src/Routes/allureTest");
 const allureRoutes = require("./src/Routes/allureRoutes");
 const jenkinsRoutes = require("./src/Routes/jenkinsRoutes");
 const groupTestcaseRoutes = require("./src/Routes/groupCaseRoutes");
+const defectRoutes = require("./src/Routes/defect");
 
 const app = express();
 
@@ -37,9 +38,8 @@ app.use("/api", allureTestRoutes);
 app.use("/api", allureRoutes);
 app.use("/api", jenkinsRoutes);
 app.use("/api", groupTestcaseRoutes);
+app.use("/api", defectRoutes);
 app.use("/screenshots", express.static(path.join(__dirname, "screenshots")));
-
-
 
 // LISTEN
 app.listen(3000, () =>

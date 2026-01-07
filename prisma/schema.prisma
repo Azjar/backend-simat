@@ -18,7 +18,7 @@ model user {
 
 model task_management {
   id         Int      @id @default(autoincrement())
-  id_suites  String
+  suiteName  String
   title      String
   assignDev  String
   priority   String

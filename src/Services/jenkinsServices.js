@@ -8,7 +8,7 @@ const AUTH = {
 }
 
 async function getLatestAllureSummary() {
-  // 1. ambil build terakhir
+  // ambil build terakhir
   const buildRes = await axios.get(
     `${JENKINS_BASE_URL}/job/${JOB_NAME}/lastBuild/api/json`,
     { auth: AUTH }
@@ -16,7 +16,7 @@ async function getLatestAllureSummary() {
 
   const buildNumber = buildRes.data.number
 
-  // 2. ambil allure summary
+  // ambil allure summary
   const allureRes = await axios.get(
     `${JENKINS_BASE_URL}/job/${JOB_NAME}/${buildNumber}/allure/widgets/summary.json`,
     { auth: AUTH }
