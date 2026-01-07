@@ -2,28 +2,34 @@ const { triggerRerunSpec } = require("../services/jenkinsWithParam");
 const { resolveQueue } = require("../services/jenkinsQueueResolver");
 const { getBuildProgress } = require("../services/jenkinsProgress");
 const { get } = require("../Routes/jenkinsRoutes");
+const { saveLatestTestRun } = require("../services/testRunJenServices");
 
 async function rerunSpec(req, res) {
   try {
-    const { spec } = req.body;
+    
+    const { scope, target } = req.body;
 
-    if (!spec) {
-      return res.status(400).json({ message: "SPEC wajib diisi" });
-    }
+    const finalSpec = target;
 
-    //  ambil hasil trigger Jenkins
-    const { queueUrl, spec: cleanSpec } = await triggerRerunSpec(spec);
+    const { queueUrl } = await triggerRerunSpec(finalSpec);
+
+    // ⬇️ SIMPAN TEST RUN KHUSUS RERUN
+    await saveLatestTestRun({
+      scope,              // "SPEC"
+      target: finalSpec,  // specPath
+    });
 
     return res.json({
       message: "Rerun spec berhasil ditrigger",
-      spec: cleanSpec,
-      queueUrl, 
+      queueUrl,
     });
   } catch (err) {
-    console.error("Rerun Jenkins error:", err.message);
-    return res.status(500).json({ message: "Gagal trigger Jenkins" });
+    console.error(err);
+    res.status(500).json({ message: "Gagal trigger Jenkins" });
   }
 }
+
+
 
 async function resolveQueueBuild(req, res) {
   try {

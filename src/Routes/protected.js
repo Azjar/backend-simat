@@ -16,23 +16,18 @@ router.get("/suites", auth, role("qa", "developer"), (req, res) => {
 });
 
 // Ambil User per role
-router.get("/developers", auth, async (req, res) => {
-  try {
-    const developers = await prisma.user.findMany({
-      where: {
-        role: "dev"
-      },
-      select: {
-        id: true,
-        username: true
-      }
-    });
+router.get(
+  "/developers",
+  auth,
+  userController.getDevelopers
+);
 
-    res.json(developers);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to fetch developers" });
-  }
-});
+// Change Password
+router.put(
+  "/change-password",
+  auth,
+  userController.changePassword
+);
+
 
 module.exports = router;

@@ -19,8 +19,21 @@ async function syncAllureToDatabase() {
   const status = totalFail > 0 ? "FAILED" : "PASSED";
 
   // UPSERT test_run (ALL)
-  const testRun = await prisma.test_run.create({
-    data: {
+  const testRun = await prisma.test_run.upsert({
+    where: {
+      scope_scopeValue: {
+        scope: "ALL",
+        scopeValue: "ALL",
+      },
+    },
+    update: {
+      totalPass,
+      totalFail,
+      status,
+      executedAt: new Date(),
+      allureUrl: "/job/eksekusi-ulang/allure",
+    },
+    create: {
       scope: "ALL",
       scopeValue: "ALL",
       totalPass,

@@ -2,33 +2,43 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 const { getLatestAllureSummary } = require('./jenkinsServices')
 
-async function saveLatestTestRun({ scope, scopeValue }) {
+async function saveLatestTestRun({ scope, target }) {
+  console.log("saveLatestTestRun CALLED WITH:", scope, target);
+  if (!scope || !target) {
+    throw new Error(
+      "❌ saveLatestTestRun dipanggil TANPA scope & target"
+    );
+  }
   const summary = await getLatestAllureSummary();
-
-  const status = summary.failed > 0 ? 'FAILED' : 'PASSED';
+  const totalFail = summary.failed + summary.broken;   
+  const status = totalFail > 0 ? 'FAILED' : 'PASSED';
 
   return prisma.test_run.upsert({
     where: {
-      scope_scopeValue: { scope, scopeValue }
+      scope_scopeValue: {
+        scope,
+        scopeValue: target,
+      },
     },
     update: {
       totalPass: summary.passed,
-      totalFail: summary.failed + summary.broken,
+      totalFail,
       status,
       executedAt: new Date(),
       allureUrl: `/job/eksekusi-ulang/${summary.buildNumber}/allure`,
     },
     create: {
       scope,
-      scopeValue,
+      scopeValue: target,
       totalPass: summary.passed,
-      totalFail: summary.failed + summary.broken,
+      totalFail,
       status,
       executedAt: new Date(),
       allureUrl: `/job/eksekusi-ulang/${summary.buildNumber}/allure`,
     },
   });
 }
+
 
 
 module.exports = { saveLatestTestRun }

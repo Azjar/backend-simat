@@ -18,7 +18,7 @@ model user {
 
 model task_management {
   id         Int      @id @default(autoincrement())
-  id_suites  String
+  suiteName  String
   title      String
   assignDev  String
   priority   String
@@ -28,15 +28,6 @@ model task_management {
   updated_at DateTime @default(now()) @updatedAt
 }
 
-model suites {
-  id         Int      @id @default(autoincrement())
-  name       String
-  status     String
-  errorMsg   String
-  record     String
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
-}
 
 model test_run {
   id         Int      @id @default(autoincrement())
@@ -49,7 +40,7 @@ model test_run {
   executedAt DateTime
   createdAt  DateTime @default(now())
 
-  @@index([scope, scopeValue])
+  @@unique([scope, scopeValue])
 }
 
 model test_specs {

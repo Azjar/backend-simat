@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-const JENKINS_BASE_URL = "http://localhost:8080";
+const JENKINS_BASE_URL = process.env.JENKINS_URL;
 const JOB_NAME = "eksekusi-ulang";
 
 const JENKINS_USER = process.env.JENKINS_USER;

@@ -4,6 +4,10 @@ const JENKINS_USER = process.env.JENKINS_USER;
 const JENKINS_TOKEN = process.env.JENKINS_TOKEN;
 
 async function resolveQueue(queueUrl, retry = 20, delay = 1000) {
+  if (!queueUrl || !queueUrl.startsWith("http")) {
+    throw new Error(`❌ queueUrl tidak valid: ${queueUrl}`);
+  }
+
   for (let i = 0; i < retry; i++) {
     const res = await axios.get(`${queueUrl}api/json`, {
       auth: {
@@ -21,11 +25,11 @@ async function resolveQueue(queueUrl, retry = 20, delay = 1000) {
       };
     }
 
-    // ⏳ tunggu 1 detik
     await new Promise((r) => setTimeout(r, delay));
   }
 
   throw new Error("Queue timeout: build belum mulai");
 }
+
 
 module.exports = { resolveQueue };
