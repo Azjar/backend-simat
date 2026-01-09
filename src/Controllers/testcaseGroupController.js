@@ -9,6 +9,20 @@ const getGroupedTestCases = async (req, res) => {
       orderBy: { suiteName: "asc" }
     });
 
+     // ambil semua task sekaligus (biar gak N+1 query)
+    const tasks = await prisma.task_management.findMany({
+      orderBy: { updated_at: "desc" }, // kalau ada multiple, yang terbaru kepilih
+    });
+
+    // bikin map: suiteName -> task terbaru
+    const taskBySuiteName = new Map();
+    for (const t of tasks) {
+      // kalau belum ada, set. Kalau sudah ada berarti sudah kepilih yg terbaru 
+      if (!taskBySuiteName.has(t.suiteName)) {
+        taskBySuiteName.set(t.suiteName, t);
+      }
+    }
+
     const grouped = {};
 
     for (const test of tests) {
@@ -25,7 +39,14 @@ const getGroupedTestCases = async (req, res) => {
         };
       }
 
-      grouped[parent].testCases.push(test);
+      const task = taskBySuiteName.get(test.suiteName);
+
+      grouped[parent].testCases.push({
+        ...test,
+        taskStatus: task?.status || "",
+        taskId: task?.id || null,
+      });
+
       grouped[parent].totalTests++;
 
       if (test.status === "PASSED") grouped[parent].passed++;

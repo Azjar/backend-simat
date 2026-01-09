@@ -4,6 +4,14 @@ const prisma = new PrismaClient();
 const ACTIVE_STATUSES = ["To Do", "In Progress"];
 // status yang artinya defect masih di-handle.
 
+function normalizePriority(priority) {
+  const v = (priority || "").toLowerCase().trim();
+  if (v === "high") return "High";
+  if (v === "medium") return "Medium";
+  if (v === "low") return "Low";
+  throw new Error("Priority tidak valid");
+}
+
 async function createDefect(payload) {
   const {
     testSpecId,
@@ -16,6 +24,10 @@ async function createDefect(payload) {
 
   if (!title || !assignDev || !priority) {
     throw new Error("Field title, assign developer, priority wajib diisi");
+  }
+
+  if (notes && notes.length > 255) {
+    throw new Error("Notes maksimal 255 karakter");
   }
 
   if (!testSpecId && !testCaseId) {
@@ -38,9 +50,9 @@ async function createDefect(payload) {
       suiteName: testSpec.suiteName,
       title,
       assignDev,
-      priority,
+      priority: normalizePriority(priority),
       status: "To Do",
-      notes: notes || "",
+      notes: notes?.trim() || "",
     },
   });
 }

@@ -9,9 +9,14 @@ async function createDefectController(req, res) {
       data: result,
     });
   } catch (err) {
-    console.error("CREATE DEFECT ERROR:", err.message);
+    console.error("CREATE DEFECT ERROR:", err);
+
+    return res.status(400).json({
+      message: err.message,
+    });
   }
 }
+
 
 async function getActiveDefectController(req, res) {
   try {

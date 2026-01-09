@@ -40,7 +40,7 @@ app.use("/api", allureRoutes);
 app.use("/api", jenkinsRoutes);
 app.use("/api", groupTestcaseRoutes);
 app.use("/api", defectRoutes);
-app.use("/api", taskManagementRoutes)
+app.use("/api", taskManagementRoutes);
 app.use("/screenshots", express.static(path.join(__dirname, "screenshots")));
 
 // LISTEN
