@@ -14,20 +14,22 @@ model user {
   role       String
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
+
+  tasks task_management[]
 }
 
 model task_management {
-  id         Int      @id @default(autoincrement())
-  suiteName  String
-  title      String
-  assignDev  String
-  priority   String
-  status     String
-  notes      String
-  created_at DateTime @default(now())
-  updated_at DateTime @default(now()) @updatedAt
+  id          Int      @id @default(autoincrement())
+  suiteName   String
+  title       String
+  assignDevId Int
+  assignDev   user     @relation(fields: [assignDevId], references: [id])
+  priority    String
+  status      String
+  notes       String   @db.VarChar(255) 
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
 }
-
 
 model test_run {
   id         Int      @id @default(autoincrement())

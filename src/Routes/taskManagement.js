@@ -16,15 +16,18 @@ router.get("/task-management", authMiddleware, async (req, res) => {
     if (priority !== "all") where.priority = priority;
 
     if (req.user.role === "dev") {
-      // DEV cuma lihat yang assignDev = username dia
-      where.assignDev = req.user.username;
+      // dev lihat task miliknya berdasarkan user.id
+      where.assignDevId = req.user.id;
     } else {
       // QA boleh filter assignee dari dropdown
-      if (assignee !== "all") where.assignDev = assignee;
+      if (assignee !== "all") where.assignDevId = Number(assignee);
     }
 
     const tasks = await prisma.task_management.findMany({
       where,
+      include: {
+        assignDev: { select: { id: true, username: true } },
+      },
       orderBy: { created_at: "desc" },
     });
 
@@ -38,7 +41,7 @@ router.get("/task-management", authMiddleware, async (req, res) => {
 // PATCH update status task
 router.patch("/task-management/:id/status", authMiddleware, async (req, res) => {
   try {
-    // ✅ hanya DEV boleh update status
+    // hanya dev boleh update status
     if (req.user.role !== "dev") {
       return res.status(403).json({ message: "Hanya developer yang boleh update status" });
     }
@@ -51,14 +54,14 @@ router.patch("/task-management/:id/status", authMiddleware, async (req, res) => 
       return res.status(400).json({ message: "Status tidak valid" });
     }
 
-    // ✅ DEV hanya boleh update task dia sendiri
+    // dev hanya boleh update task dia sendiri
     const result = await prisma.task_management.updateMany({
-      where: { id, assignDev: req.user.username },
+      where: { id, assignDevId: req.user.id },
       data: { status },
     });
 
     if (result.count === 0) {
-      return res.status(403).json({ message: "Task ini bukan milik kamu atau tidak ditemukan" });
+      return res.status(404).json({ message: "Task ini tidak ditemukan" });
     }
 
     return res.json({ message: "Status updated", count: result.count });

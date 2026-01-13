@@ -5,14 +5,22 @@ const prisma = new PrismaClient();
 
 const getGroupedTestCases = async (req, res) => {
   try {
-    const { role, username } = req.user;
+    const { role, id: userId } = req.user;
 
-    // 1️⃣ Ambil task dulu (karena DEV filter dari sini)
+    // Ambil task dulu (karena DEV filter dari sini)
     const tasks = await prisma.task_management.findMany({
       where: role === "dev"
-        ? { assignDev: username }
-        : {}, // QA ambil semua
-      orderBy: { updated_at: "desc" }
+        ? { assignDevId: userId }
+        : {},
+      include: {
+        assignDev: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
+      orderBy: { updated_at: "desc" },
     });
 
     // kalau DEV tapi tidak punya task → langsung kosong
@@ -20,7 +28,7 @@ const getGroupedTestCases = async (req, res) => {
       return res.json([]);
     }
 
-    // 2️⃣ Map suiteName → task terbaru
+    // Map suiteName → task terbaru
     const taskBySuiteName = new Map();
     for (const t of tasks) {
       if (!taskBySuiteName.has(t.suiteName)) {
@@ -28,7 +36,7 @@ const getGroupedTestCases = async (req, res) => {
       }
     }
 
-    // 3️⃣ Ambil test_specs
+    // Ambil test_specs
     const tests = await prisma.test_specs.findMany({
       where: role === "dev"
         ? {
@@ -40,7 +48,7 @@ const getGroupedTestCases = async (req, res) => {
       orderBy: { suiteName: "asc" }
     });
 
-    // 4️⃣ Grouping (LOGIC LAMA KAMU – AMAN)
+    // Grouping 
     const grouped = {};
 
     for (const test of tests) {
@@ -72,7 +80,7 @@ const getGroupedTestCases = async (req, res) => {
       if (test.status === "BROKEN") grouped[parent].broken++;
     }
 
-    // 5️⃣ Sort child
+    // Sort child
     Object.values(grouped).forEach(group =>
       group.testCases.sort((a, b) =>
         a.suiteName.localeCompare(b.suiteName)

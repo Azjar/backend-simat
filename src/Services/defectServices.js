@@ -17,12 +17,12 @@ async function createDefect(payload) {
     testSpecId,
     testCaseId,
     title,
-    assignDev,
+    assignDevId,
     priority,
     notes,
   } = payload;
 
-  if (!title || !assignDev || !priority) {
+  if (!title || !assignDevId || !priority) {
     throw new Error("Field title, assign developer, priority wajib diisi");
   }
 
@@ -49,7 +49,7 @@ async function createDefect(payload) {
     data: {
       suiteName: testSpec.suiteName,
       title,
-      assignDev,
+      assignDevId: Number(assignDevId),
       priority: normalizePriority(priority),
       status: "To Do",
       notes: notes?.trim() || "",
@@ -75,7 +75,7 @@ async function getActiveDefectByTestSpecId(testSpecId) {
       status: { in: ACTIVE_STATUSES },
     },
     select: {
-      assignDev: true,
+      assignDev: { select: { id: true, username: true } },
       priority: true,
       status: true,
       created_at: true, 
