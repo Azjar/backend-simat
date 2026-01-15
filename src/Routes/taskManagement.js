@@ -9,7 +9,9 @@ router.get("/task-management", authMiddleware, async (req, res) => {
   try {
     const { status = "all", priority = "all", assignee = "all" } = req.query;
 
-    const where = {};
+    const where = {
+      is_hidden: false,
+    };
 
     // filter status/priority
     if (status !== "all") where.status = status;

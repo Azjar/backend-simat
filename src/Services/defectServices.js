@@ -73,6 +73,7 @@ async function getActiveDefectByTestSpecId(testSpecId) {
     where: {
       suiteName: testSpec.suiteName,
       status: { in: ACTIVE_STATUSES },
+      is_hidden: false,  
     },
     select: {
       id: true, 

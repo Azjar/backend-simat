@@ -8,41 +8,38 @@ datasource db {
 }
 
 model user {
-  id         Int      @id @default(autoincrement())
-  username   String   @unique
-  password   String
-  role       String
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-
+  id            Int               @id @default(autoincrement())
+  username      String
+  password      String
+  role          String
+  created_at    DateTime          @default(now())
+  updated_at    DateTime          @default(now()) @updatedAt
   assignedTasks task_management[] @relation("AssignedDev")
   reopenedTasks task_management[] @relation("ReopenedBy")
 }
 
 model task_management {
-  id        Int    @id @default(autoincrement())
-  suiteName String
-  title     String
-
+  id          Int       @id @default(autoincrement())
+  suiteName   String
+  title       String
+  priority    String
+  status      String
+  notes       String
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @default(now()) @updatedAt
   assignDevId Int
-  assignDev   user @relation("AssignedDev", fields: [assignDevId], references: [id])
-
-  priority String
-  status   String
-  notes    String @db.VarChar(255)
-
-  is_hidden Boolean @default(false)
-
-  reopenedAt  DateTime?
+  reopenedAt  DateTime? @db.DateTime(0)
   reopenedBy  Int?
-  reopened_by user?     @relation("ReopenedBy", fields: [reopenedBy], references: [id])
+  is_hidden   Boolean   @default(false)
+  assignDev   user      @relation("AssignedDev", fields: [assignDevId], references: [id], map: "fk_task_assignDevId")
+  reopened_by user?     @relation("ReopenedBy", fields: [reopenedBy], references: [id], onUpdate: NoAction, map: "fk_task_reopened_by")
 
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
+  @@index([assignDevId], map: "fk_task_assignDevId")
+  @@index([reopenedBy], map: "fk_task_reopened_by")
 }
 
 model test_run {
-  id         Int      @id @default(autoincrement())
+  id         Int          @id @default(autoincrement())
   scope      String
   scopeValue String
   totalPass  Int
@@ -50,14 +47,13 @@ model test_run {
   status     String
   allureUrl  String?
   executedAt DateTime
-  createdAt  DateTime @default(now())
-
-  @@unique([scope, scopeValue])
+  createdAt  DateTime     @default(now())
+  test_specs test_specs[]
 }
 
 model test_specs {
   id            Int      @id @default(autoincrement())
-  testCaseId    String   @unique
+  testCaseId    String
   suiteName     String
   testName      String
   status        String
@@ -69,7 +65,7 @@ model test_specs {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   specPath      String?  @db.VarChar(255)
+  test_run      test_run @relation(fields: [runId], references: [id])
 
-  @@unique([specPath, testName])
   @@index([runId], map: "test_specs_runId_fkey")
 }

@@ -9,7 +9,10 @@ const getGroupedTestCases = async (req, res) => {
     // Ambil task dulu (karena DEV filter dari sini)
     const tasks = await prisma.task_management.findMany({
       where: role === "dev"
-        ? { assignDevId: userId }
+        ? { 
+            assignDevId: userId, 
+            is_hidden: false,
+          }
         : {},
       include: {
         assignDev: {
