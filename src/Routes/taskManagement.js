@@ -4,14 +4,23 @@ const authMiddleware = require("../Middleware/auth");
 const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient();
 
-// GET tasks 
+// GET tasks
 router.get("/task-management", authMiddleware, async (req, res) => {
   try {
-    const { status = "all", priority = "all", assignee = "all" } = req.query;
+    const {
+      status = "all",
+      priority = "all",
+      assignee = "all",
+      showHidden = "0", // <-- tambahin ini
+    } = req.query;
 
-    const where = {
-      is_hidden: false,
-    };
+    const where = {};
+
+    // default: hidden tidak ikut
+    // kalau showHidden=1 => include hidden
+    if (showHidden !== "1") {
+      where.is_hidden = false;
+    }
 
     // filter status/priority
     if (status !== "all") where.status = status;
@@ -39,6 +48,7 @@ router.get("/task-management", authMiddleware, async (req, res) => {
     res.status(500).json({ message: "Gagal mengambil task management" });
   }
 });
+
 
 // PATCH update status task
 router.patch("/task-management/:id/status", authMiddleware, async (req, res) => {
