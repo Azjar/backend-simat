@@ -15,18 +15,11 @@ router.get("/suites", auth, role("qa", "developer"), (req, res) => {
   res.json({ message: "Data suites" });
 });
 
-// Ambil User per role
+// Ambil User dengan role developer
 router.get(
   "/developers",
   auth,
   userController.getDevelopers
-);
-
-// Change Password
-router.put(
-  "/edit-profile",
-  auth,
-  userController.updateProfile
 );
 
 
