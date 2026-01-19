@@ -73,6 +73,6 @@ model test_specs {
   test_run      test_run @relation(fields: [runId], references: [id])
   tasks         task_management[]
 
-  @@unique([specPath, suiteName])
+  @@unique([specPath, testName])
   @@index([runId], map: "test_specs_runId_fkey")
 }
