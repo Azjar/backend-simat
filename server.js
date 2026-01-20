@@ -7,8 +7,6 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const authRoutes = require("./src/Routes/auth");
 const protectedRoutes = require("./src/Routes/protected");
-const testRunRoutes = require("./src/Routes/testRun");
-const allureTestRoutes = require("./src/Routes/allureTest");
 const allureRoutes = require("./src/Routes/allureRoutes");
 const jenkinsRoutes = require("./src/Routes/jenkinsRoutes");
 const groupTestcaseRoutes = require("./src/Routes/groupCaseRoutes");
@@ -35,8 +33,6 @@ app.get("/", (req, res) => {
 // REGISTER ROUTES 
 app.use("/auth", authRoutes);
 app.use("/api", protectedRoutes);
-app.use("/api", testRunRoutes); 
-app.use("/api", allureTestRoutes);
 app.use("/api", allureRoutes);
 app.use("/api", jenkinsRoutes);
 app.use("/api", groupTestcaseRoutes);

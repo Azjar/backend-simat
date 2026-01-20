@@ -7,8 +7,15 @@ const AUTH = {
   password: process.env.JENKINS_TOKEN,
 }
 
+/** getLatestAllureSummary
+ * Mengambil ringkasan (summary) hasil test Alluredari build Jenkins TERAKHIR
+ * Alur kerja:
+ * 1. Mengambil informasi lastBuild Jenkins
+ * 2. Mendapatkan buildNumber terakhir
+ * 3. Mengambil file Allure summary.json dari build tersebut
+ */
 async function getLatestAllureSummary() {
-  // ambil build terakhir
+  // Ambil data build terakhir dari Jenkins
   const buildRes = await axios.get(
     `${JENKINS_BASE_URL}/job/${JOB_NAME}/lastBuild/api/json`,
     { auth: AUTH }
@@ -16,7 +23,7 @@ async function getLatestAllureSummary() {
 
   const buildNumber = buildRes.data.number
 
-  // ambil allure summary
+  // Ambil summary Allure dari build terakhir
   const allureRes = await axios.get(
     `${JENKINS_BASE_URL}/job/${JOB_NAME}/${buildNumber}/allure/widgets/summary.json`,
     { auth: AUTH }
@@ -24,7 +31,7 @@ async function getLatestAllureSummary() {
 
   return {
     buildNumber,
-    ...allureRes.data.statistic
+    ...allureRes.data.statistic,
   }
 }
 

@@ -1,26 +1,45 @@
+// Inisialisasi router Express
 const express = require("express");
 const router = express.Router();
-const auth = require("../Middleware/auth");
+// Middleware autentikasi
+const authMiddleware = require("../Middleware/auth");
+// Middleware otorisasi berbasis role
 const role = require("../Middleware/role");
+// Controller user
 const userController = require("../Controllers/userController");
-const prisma = require("../utils/prisma");
 
-// hanya QA yang boleh
-router.get("/dashboard", auth, role("qa"), (req, res) => {
-  res.json({ message: "Dashboard khusus QA" });
-});
+/** GET /dashboard
+ * - Endpoint dashboard khusus untuk role QA
+ */
+router.get(
+  "/dashboard",
+  authMiddleware,   // cek token & set req.user
+  role("qa"),       // hanya QA
+  (req, res) => {
+    res.json({ message: "Dashboard khusus QA" });
+  }
+);
 
-// QA & developer boleh
-router.get("/suites", auth, role("qa", "developer"), (req, res) => {
-  res.json({ message: "Data suites" });
-});
+/** GET /suites
+ * - Endpoint untuk page dan data suites
+ */
+router.get(
+  "/suites",
+  authMiddleware, //  cek token & set req.user
+  role("qa", "developer"),// otorisasi role
+  (req, res) => {
+    res.json({ message: "Data suites" });
+  }
+);
 
-// Ambil User dengan role developer
+/** GET /developers
+ * - Mengambil daftar user dengan role developer
+ */
 router.get(
   "/developers",
-  auth,
+  authMiddleware, // cek token & set req.user
   userController.getDevelopers
 );
 
-
+// Export router untuk dipakai di app utama
 module.exports = router;

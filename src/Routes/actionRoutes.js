@@ -2,26 +2,26 @@ const express = require("express");
 const router = express.Router();
 const authMiddleware = require("../Middleware/auth");
 const requireQA = require("../Middleware/requireQA");
-
+// Controller untuk reopen dan complete task
 const {
   completeTaskController,
   reopenTaskController,
 } = require("../Controllers/actionController");
 
-// REOPEN
+// REOPEN ROUTE
 router.patch(
   "/tasks/:id/reopen",
-  authMiddleware,
-  requireQA,
-  reopenTaskController
+  authMiddleware, // cek token & set req.user
+  requireQA, // cek role user dari req.user (harus QA)
+  reopenTaskController // controller reopen task
 );
 
 // COMPLETE
 router.patch(
   "/tasks/:id/complete",
-  authMiddleware,
-  requireQA,
-  completeTaskController
+  authMiddleware, // cek token & set req.user
+  requireQA, // cek role user dari req.user (harus QA)
+  completeTaskController // controller complete task
 );
 
 module.exports = router;
