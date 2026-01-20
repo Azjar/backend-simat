@@ -11,7 +11,7 @@ function normalizePriority(priority) {
   if (v === "high") return "High";
   if (v === "medium") return "Medium";
   if (v === "low") return "Low";
-  throw new Error("Priority tidak valid");
+  throw new Error("Invalid priority");
 }
 
 // service untuk create defect 

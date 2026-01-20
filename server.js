@@ -12,9 +12,9 @@ const allureTestRoutes = require("./src/Routes/allureTest");
 const allureRoutes = require("./src/Routes/allureRoutes");
 const jenkinsRoutes = require("./src/Routes/jenkinsRoutes");
 const groupTestcaseRoutes = require("./src/Routes/groupCaseRoutes");
-const defectRoutes = require("./src/Routes/defect");
-const taskManagementRoutes = require("./src/Routes/taskManagement");
-const reopenRoutes = require("./src/Routes/reopenRoutes");
+const defectRoutes = require("./src/Routes/defectRoutes");
+const taskManagementRoutes = require("./src/Routes/taskManagementRoutes");
+const actionRoutes = require("./src/Routes/actionRoutes");
 
 const app = express();
 
@@ -43,7 +43,7 @@ app.use("/api", groupTestcaseRoutes);
 app.use("/api", defectRoutes);
 app.use("/api", taskManagementRoutes);
 app.use("/screenshots", express.static(path.join(__dirname, "screenshots")));
-app.use("/api", reopenRoutes);
+app.use("/api", actionRoutes);
 
 // LISTEN
 app.listen(3000, () =>

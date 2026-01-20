@@ -1,18 +1,23 @@
-const { PrismaClient } = require("@prisma/client");
-const prisma = new PrismaClient();
-const userService = require("../Services/userServices");
-const bcrypt = require("bcryptjs");
+const bcrypt = require("bcryptjs"); // hash & compare password
+const jwt = require("jsonwebtoken"); // JWT
 const SECRET_KEY = process.env.SECRET_KEY;
-const jwt = require("jsonwebtoken");
+const {
+  getUsersByRole,
+  findUserByUsername,
+  getSafeUserById,
+  findUserById,
+  isUsernameTaken,
+  updateUserById,
+} = require("../Services/userServices");
 
-// login user
+// =========================
+// LOGIN USER
+// =========================
 exports.login = async (req, res) => {
   const { username, password } = req.body;
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { username },
-    });
+    const user = await findUserByUsername(username);
 
     if (!user) {
       return res.status(401).json({ message: "User Not Found" });
@@ -29,140 +34,110 @@ exports.login = async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    res.cookie("token", token, {
-      httpOnly: true,
-      sameSite: "lax",
-    }).json({
-      message: "Login Successful",
-    });
-
+    return res
+      .cookie("token", token, {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+      })
+      .json({ message: "Login Successful" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Internal Server error" });
+    return res.status(500).json({ message: "Internal Server error" });
   }
 };
 
-// logout user
-exports.logout = (req, res) => { 
-  res.clearCookie("token").json({ message: "Logout Successful" });
+// =========================
+// LOGOUT USER
+// =========================
+exports.logout = (req, res) => {
+  return res.clearCookie("token").json({ message: "Logout Successful" });
 };
 
-// get current user info
-exports.me = async (req, res) => { 
-  const user = await prisma.user.findUnique({
-    where: { id: req.user.id },
-    select: {
-      id: true,
-      username: true,
-      role: true,
-    },
-  });
-
-  res.json({
-    loggedIn: true,
-    userId: user.id,
-    username: user.username,
-    role: user.role,
-  });
-};
-
-// get all developers
-exports.getDevelopers = async (req, res) => {
+// =========================
+// GET CURRENT USER INFO
+// =========================
+exports.me = async (req, res) => {
   try {
-    const developers = await userService.getUsersByRole("dev");
-    res.json(developers);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Gagal mengambil data developer" });
-  }
-};
-
-// update user profile (username and/or password)
-exports.updateProfile = async (req, res) => {
-  const userId = req.user.id;
-  const {
-    username,
-    currentPassword,
-    newPassword,
-    confirmPassword,
-  } = req.body;
-
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const user = await getSafeUserById(req.user.id);
 
     if (!user) {
-      return res.status(404).json({
-        message: "User not found",
-      });
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.json({
+      loggedIn: true,
+      userId: user.id,
+      username: user.username,
+      role: user.role,
+    });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal Server error" });
+  }
+};
+
+// =========================
+// GET ALL DEVELOPERS
+// =========================
+exports.getDevelopers = async (req, res) => {
+  try {
+    const developers = await getUsersByRole("dev");
+    return res.json(developers);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Failed to retrieve developer data" });
+  }
+};
+
+// =========================
+// UPDATE USER PROFILE
+// (username and/or password)
+// =========================
+exports.updateProfile = async (req, res) => {
+  const userId = req.user.id;
+  const { username, currentPassword, newPassword, confirmPassword } = req.body;
+
+  try {
+    const user = await findUserById(userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
     const updateData = {};
 
-    /* =======================
-       UPDATE USERNAME
-    ======================= */
+    // UPDATE USERNAME
     if (username && username !== user.username) {
-      
-      //  CHECK USERNAME UNIQUENESS
-      const existingUser = await prisma.user.findFirst({
-        where: {
-          username,
-          NOT: { id: userId },
-        },
-      });
-
-      if (existingUser) {
-        return res.status(409).json({
-          message: "Username already taken",
-        });
+      const taken = await isUsernameTaken(username, userId);
+      if (taken) {
+        return res.status(409).json({ message: "Username already taken" });
       }
-
       updateData.username = username;
     }
 
-    /* =======================
-       UPDATE PASSWORD
-    ======================= */
-    const wantChangePassword =
-      currentPassword || newPassword || confirmPassword;
+    // UPDATE PASSWORD
+    const wantChangePassword = currentPassword || newPassword || confirmPassword;
 
     if (wantChangePassword) {
       if (!currentPassword || !newPassword || !confirmPassword) {
-        return res.status(400).json({
-          message: "All password fields are required",
-        });
+        return res.status(400).json({ message: "All password fields are required" });
       }
 
       if (newPassword !== confirmPassword) {
-        return res.status(400).json({
-          message: "Password confirmation does not match",
-        });
+        return res.status(400).json({ message: "Password confirmation does not match" });
       }
 
       if (newPassword.length < 8) {
-        return res.status(400).json({
-          message: "New password must be at least 8 characters",
-        });
+        return res.status(400).json({ message: "New password must be at least 8 characters" });
       }
 
-      const isMatch = bcrypt.compareSync(
-        currentPassword,
-        user.password
-      );
-
+      const isMatch = bcrypt.compareSync(currentPassword, user.password);
       if (!isMatch) {
-        return res.status(401).json({
-          message: "Current password is incorrect",
-        });
+        return res.status(401).json({ message: "Current password is incorrect" });
       }
 
-      const isSame = bcrypt.compareSync(
-        newPassword,
-        user.password
-      );
-
+      const isSame = bcrypt.compareSync(newPassword, user.password);
       if (isSame) {
         return res.status(400).json({
           message: "New password must be different from the current password",
@@ -172,19 +147,12 @@ exports.updateProfile = async (req, res) => {
       updateData.password = bcrypt.hashSync(newPassword, 10);
     }
 
-    /* =======================
-       PREVENT EMPTY UPDATE
-    ======================= */
+    // PREVENT EMPTY UPDATE
     if (Object.keys(updateData).length === 0) {
-      return res.status(400).json({
-        message: "No changes detected",
-      });
+      return res.status(400).json({ message: "No changes detected" });
     }
 
-    await prisma.user.update({
-      where: { id: userId },
-      data: updateData,
-    });
+    await updateUserById(userId, updateData);
 
     // logout only if password is changed
     if (updateData.password) {
@@ -194,14 +162,9 @@ exports.updateProfile = async (req, res) => {
       });
     }
 
-    return res.json({
-      message: "Username updated successfully",
-    });
+    return res.json({ message: "Username updated successfully" });
   } catch (err) {
     console.error(err);
-    res.status(500).json({
-      message: "Failed to update profile",
-    });
+    return res.status(500).json({ message: "Failed to update profile" });
   }
 };
-

@@ -22,9 +22,17 @@ exports.getTasks = async ({ user, query }) => {
   if (status !== "all") 
     where.status = status;
 
+  const normalizePriority = (p) => {
+    const v = (p || "").toLowerCase().trim();
+    if (v === "high") return "High";
+    if (v === "medium") return "Medium";
+    if (v === "low") return "Low";
+    return p; // fallback
+  };
+
   // filter prioriy
   if (priority !== "all") 
-    where.priority = priority;
+    where.priority = normalizePriority(priority);
 
   // dev hanya boleh lihat task miliknya sendiri
   if (user.role === "dev") {
