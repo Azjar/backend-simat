@@ -1,10 +1,10 @@
-const { triggerRerunSpec } = require("../services/jenkinsWithParam");
-const { resolveQueue } = require("../services/jenkinsQueueResolver");
-const { getBuildProgress } = require("../services/jenkinsProgress");
+const { triggerRerunSpec } = require("../Services/jenkinsWithParam");
+const { resolveQueue } = require("../Services/jenkinsQueueResolver");
+const { getBuildProgress } = require("../Services/jenkinsProgress");
 const { get } = require("../Routes/jenkinsRoutes");
-const { saveLatestTestRun } = require("../services/testRunJenServices");
+const { saveLatestTestRun } = require("../Services/testRunJenServices");
 
-const defectServices = require("../services/defectServices"); // sesuaikan path
+const defectServices = require("../Services/defectServices"); 
 // misal exported: { getActiveDefectByTestSpecId }
 
 async function rerunSpec(req, res) {
@@ -14,8 +14,8 @@ async function rerunSpec(req, res) {
     // console.log("user:", req.user);
 
     // 1) validasi
-    if (!target) return res.status(400).json({ message: "target wajib" });
-    if (!testSpecId) return res.status(400).json({ message: "testSpecId wajib" });
+    if (!target) return res.status(400).json({ message: "Target is required" });
+    if (!testSpecId) return res.status(400).json({ message: "testSpecId is required" });
 
     // 2) ambil role user (asumsi sudah ada auth middleware yang set req.user)
     const role = req.user?.role; // "qa" / "dev"
@@ -31,14 +31,14 @@ async function rerunSpec(req, res) {
       // To Do / In Progress => DEV only
       if (["To Do", "In Progress"].includes(status) && role !== "dev") {
         return res.status(403).json({
-          message: "Rerun tidak diizinkan: task sedang dikerjakan DEV.",
+          message: "Rerun is not allowed: the task is currently being handled by developer",
         });
       }
 
       // Done => QA only
       if (status === "Done" && role !== "qa") {
         return res.status(403).json({
-          message: "Rerun tidak diizinkan: task Done sedang diverifikasi QA.",
+          message: "Rerun is not allowed: the task is already in Done status and is currently being handled by QA",
         });
       }
     }
@@ -49,10 +49,10 @@ async function rerunSpec(req, res) {
 
     await saveLatestTestRun({ scope, target: finalSpec });
 
-    return res.json({ message: "Rerun spec berhasil ditrigger", queueUrl });
+    return res.json({ message: "Rerun spec has been successfully triggered", queueUrl });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Gagal trigger Jenkins" });
+    res.status(500).json({ message: "Failed to trigger the Jenkins job" });
   }
 }
 
@@ -62,7 +62,7 @@ async function resolveQueueBuild(req, res) {
     const { queueUrl } = req.query;
 
     if (!queueUrl) {
-      return res.status(400).json({ message: "queueUrl wajib" });
+      return res.status(400).json({ message: "queueUrl is required" });
     }
 
     const result = await resolveQueue(queueUrl);
@@ -81,7 +81,7 @@ async function getBuildProgressController(req, res) {
     res.json(data);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Gagal ambil progress Jenkins" });
+    res.status(500).json({ message: "Failed to retrieve Jenkins progress" });
   }
 }
 

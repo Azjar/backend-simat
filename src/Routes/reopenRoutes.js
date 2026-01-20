@@ -6,7 +6,7 @@ const requireQA = require("../Middleware/requireQA");
 const {
   completeTaskController,
   reopenTaskController,
-} = require("../controllers/reopenController");
+} = require("../Controllers/reopenController");
 
 // REOPEN
 router.patch(

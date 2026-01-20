@@ -7,7 +7,7 @@ async function createDefectController(req, res) {
 
     // kalau sukses, kirim response 201 created + data hasil create
     return res.status(201).json({
-      message: "Defect berhasil dibuat",
+      message: "Defect successfully created",
       data: result,
     });
   } catch (err) {

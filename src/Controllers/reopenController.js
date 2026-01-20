@@ -6,11 +6,6 @@ const reopenTaskController = async (req, res) => {
   try {
     const taskId = Number(req.params.id);
 
-    // kalau kamu sudah pakai middleware requireQA, ini optional
-    if (req.user?.role !== "qa") {
-      return res.status(403).json({ message: "Forbidden: QA only" });
-    }
-
     const updated = await prisma.task_management.update({
       where: { id: taskId },
       data: {
@@ -34,10 +29,6 @@ const reopenTaskController = async (req, res) => {
 const completeTaskController = async (req, res) => {
   try {
     const taskId = Number(req.params.id);
-
-    if (req.user?.role !== "qa") {
-      return res.status(403).json({ message: "Forbidden: QA only" });
-    }
 
     const updated = await prisma.task_management.update({
       where: { id: taskId },

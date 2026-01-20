@@ -1,6 +1,6 @@
 const { syncAllureToDatabase } = require("../Services/allureSyncServices");
 
-async function syncAllure(req, res) {
+async function syncAllure(res) {
   try {
     const result = await syncAllureToDatabase();
     res.json({
@@ -9,7 +9,7 @@ async function syncAllure(req, res) {
     });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Gagal sync allure" });
+    res.status(500).json({ message: "Failed to sync allure" });
   }
 }
 

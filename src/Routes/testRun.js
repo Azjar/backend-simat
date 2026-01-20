@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const { syncTestRun } = require('../controllers/testRunController')
+const { syncTestRun } = require('../Controllers/testRunController')
 
 router.post('/test-runs/sync', syncTestRun)
 
