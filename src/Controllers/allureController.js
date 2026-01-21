@@ -1,6 +1,6 @@
 const { syncAllureToDatabase } = require("../Services/allureSyncServices");
 
-async function syncAllure(res) {
+async function syncAllure(req, res) {
   try {
     // Menjalankan proses sinkronisasi Allure ke database
     const result = await syncAllureToDatabase();
