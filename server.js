@@ -16,9 +16,22 @@ const actionRoutes = require("./src/Routes/actionRoutes");
 
 const app = express();
 
+app.set("trust proxy", 1);
+
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://frontend-simat-15mrj9khb-iamdeepshys-projects.vercel.app"
+];
+
 app.use(cors({
-    origin: "http://localhost:5173",
-    credentials: true,
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (!allowedOrigins.includes(origin)) {
+      return callback(new Error("CORS not allowed"), false);
+    }
+    return callback(null, true);
+  },
+  credentials: true
 }));
 
 app.use(express.json());
