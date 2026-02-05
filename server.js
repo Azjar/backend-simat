@@ -25,13 +25,20 @@ const allowedOrigins = [
   "https://frontend-simat-15mrj9khb-iamdeepshys-projects.vercel.app"
 ];
 
-app.use(cors({
-  origin: allowedOrigins,
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin) return callback(null, true);
+    if (!allowedOrigins.includes(origin)) {
+      return callback(new Error("CORS not allowed"), false);
+    }
+    return callback(null, true);
+  },
   credentials: true,
-}));
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 
-app.options("/*", cors());
-
+app.use(cors(corsOptions));
 
 app.use(express.json());
 app.use(cookieParser());
