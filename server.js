@@ -39,7 +39,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // ⬅️ INI YANG BIKIN PREFLIGHT LOLOS
 
 app.use(express.json());
 app.use(cookieParser());
