@@ -34,13 +34,15 @@ exports.login = async (req, res) => {
       { expiresIn: "1d" }
     );
 
-    return res
-      .cookie("token", token, {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-      })
-      .json({ message: "Login Successful" });
+  return res
+    .cookie("token", token, {
+      httpOnly: true,
+      secure: true,        // WAJIB (HTTPS Railway)
+      sameSite: "none",    // WAJIB (beda domain)
+      path: "/",
+      maxAge: 24 * 60 * 60 * 1000,
+    })
+    .json({ message: "Login Successful" });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Internal Server error" });
