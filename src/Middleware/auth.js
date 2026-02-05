@@ -2,11 +2,10 @@ const jwt = require("jsonwebtoken"); // Library untuk verifikasi JSON Web Token 
 const SECRET_KEY = process.env.SECRET_KEY; // Secret key untuk verifikasi token
 
 
-/**
- * Middleware autentikasi berbasis JWT (cookie-based).
- * - Melindungi endpoint yang membutuhkan login
- * - Menentukan role & identitas user (QA / DEV / dll)
- */
+
+//   Middleware autentikasi berbasis JWT (cookie-based).
+//   Melindungi endpoint yang membutuhkan login
+//   Menentukan role & identitas user (QA / DEV / dll)
 module.exports = function (req, res, next) {
   // Ambil token dari cookie
   const token = req.cookies.token;
